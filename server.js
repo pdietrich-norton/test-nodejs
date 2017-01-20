@@ -35,7 +35,8 @@ router.route('/api/client')
 
 // Route to add/update user
 router.route('/api/user')
-    .post(userController.getUser, userController.addUser);
+    .post(userController.getUser, userController.addUser)
+    .put(userController.getUser, userController.updateUser);
 
 /*
 // AUTH
@@ -48,8 +49,8 @@ router.route('/api/oauth2/authorize')
 router.route('/api/oauth2/token')
     .post(authController.isClientAuthenticated, oauth2Controller.token);
 */
-// Register all our routes
+
+
 app.use(router);
 
-// Start the server
 app.listen(3000);
