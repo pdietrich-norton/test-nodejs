@@ -2,17 +2,17 @@
 var mongoose = require('mongoose');
 
 // Define our client schema
-var ClientSchema = new mongoose.Schema({
+var Client = new mongoose.Schema({
         name: {
             type: String,
             unique: true,
             required: true
         },
-        id: {
+        clientId: {
             type: String,
             required: true
         },
-        secret: {
+        clientSecret: {
             type: String,
             required: true
         },
@@ -20,11 +20,8 @@ var ClientSchema = new mongoose.Schema({
             type: String,
             required: true
         }
-    },
-    {
-        collection: 'oauth_clients'
     }
 );
 
 // Export the Mongoose model
-module.exports = mongoose.model('Client', ClientSchema);
+module.exports = mongoose.model('Client', Client);

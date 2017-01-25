@@ -1,94 +1,131 @@
-// Load required packages
-var passport = require('passport');
-var BasicStrategy = require('passport-http').BasicStrategy;
-var LocalStrategy = require('passport-local').Strategy;
-var BearerStrategy = require('passport-http-bearer').Strategy;
-var User = require('../models/user');
-var Client = require('../models/client');
-var Token = require('../models/token');
+/**
+ * Module dependencies.
+ */
+var passport = require('passport'),
+    LocalStrategy = require('passport-local').Strategy,
+    BasicStrategy = require('passport-http').BasicStrategy,
+    ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy,
+    BearerStrategy = require('passport-http-bearer').Strategy,
+    User = require('../models/user'),
+    Client = require('../models/client'),
+    AccessToken = require('../models/accessToken'),
+    RefreshToken = require('../models/refreshToken'),
+    bcrypt = require('bcrypt-nodejs');;
+
+
+passport.use(new LocalStrategy(
+    function(username, password, done) {
+      User.findOne({ username: username }, function (err, user) {
+        if (err) { return done(err); }
+
+        // No user found with that username
+        if (!user) { return done(null, false); }
+
+        // Make sure the password is correct
+        user.verifyPassword(password, function(err, isMatch) {
+          if (err) { return done(err); }
+
+          // Password did not match
+          if (!isMatch) { return done(null, false); }
+
+          // Success
+          return done(null, user);
+        });
+      });
+    }
+));
+
+// if login sessions are used, Serialize and deserialize userId for storing in sessions
+passport.serializeUser(function(user, done) {
+  done(null, user.username);
+});
+
+passport.deserializeUser(function(id, done) {
+  User.findOne({username: id}, function (err, user) {
+    done(err, user);
+  })
+});
 
 passport.use(new BasicStrategy(
-  function(username, password, callback) {
-    User.findOne({ username: username }, function (err, user) {
-      if (err) { return callback(err); }
+    function(username, password, done) {
+        Client.findOne({ clientId: username }, function(err, client) {
+            if (err) {
+                return done(err);
+            }
 
-      // No user found with that username
-      if (!user) { return callback(null, false); }
+            if (!client) {
+                return done(null, false);
+            }
 
-      // Make sure the password is correct
-      user.verifyPassword(password, function(err, isMatch) {
-        if (err) { return callback(err); }
+            if (client.clientSecret !== password) {
+                return done(null, false);
+            }
 
-        // Password did not match
-        if (!isMatch) { return callback(null, false); }
-
-        // Success
-        return callback(null, user);
-      });
-    });
-  }
+            return done(null, client);
+        });
+    }
 ));
 
-passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'pass'
-  },
-  function(username, password, callback) {
-    User.findOne({ username: username }, function (err, user) {
-      if (err) { return callback(err); }
+passport.use(new ClientPasswordStrategy(
+    function(clientId, clientSecret, done) {
 
-      // No user found with that username
-      if (!user) { return callback(null, false); }
+        Client.findOne({ clientId: clientId }, function(err, client) {
+            if (err) {
+                return done(err);
+            }
 
-      // Make sure the password is correct
-      user.verifyPassword(password, function(err, isMatch) {
-        if (err) { return callback(err); }
+            if (!client) {
+                return done(null, false);
+            }
 
-        // Password did not match
-        if (!isMatch) { return callback(null, false); }
+            if (client.clientSecret !== clientSecret) {
+                return done(null, false);
+            }
 
-        // Success
-        return callback(null, user);
-      });
-    });
-  }
-));
-
-passport.use('client-basic', new BasicStrategy(
-  function(username, password, callback) {
-    Client.findOne({ id: username }, function (err, client) {
-      if (err) { return callback(err); }
-
-      // No client found with that id or bad password
-      if (!client || client.secret !== password) { return callback(null, false); }
-
-      // Success
-      return callback(null, client);
-    });
-  }
+            return done(null, client);
+        });
+    }
 ));
 
 passport.use(new BearerStrategy(
-  function(accessToken, callback) {
-    Token.findOne({value: accessToken }, function (err, token) {
-      if (err) { return callback(err); }
+    function(accessToken, done) {
+        AccessToken.findOne({ token: accessToken }, function(err, token) {
 
-      // No token found
-      if (!token) { return callback(null, false); }
+            if (err) {
+                return done(err);
+            }
 
-      User.findOne({ _id: token.userId }, function (err, user) {
-        if (err) { return callback(err); }
+            if (!token) {
+                return done(null, false);
+            }
 
-        // No user found
-        if (!user) { return callback(null, false); }
+            // check if token has expired and if so, delete it
+            if( Math.round((Date.now()-token.created)/1000) > 3600 ) {
+                AccessToken.remove({ token: accessToken }, function (err) {
+                    if (err) {
+                        return done(err);
+                    }
+                });
 
-        // Simple example with no scope
-        callback(null, user, { scope: '*' });
-      });
-    });
-  }
+                return done(null, false, { message: 'Token expired' });
+            }
+
+            User.findById(token.userId, function(err, user) {
+
+                if (err) {
+                    return done(err);
+                }
+
+                if (!user) {
+                    return done(null, false, { message: 'Unknown user' });
+                }
+
+                var info = { scope: '*' };
+                done(null, user, info);
+            });
+        });
+    }
 ));
 
-exports.isAuthenticated = passport.authenticate(['local', 'bearer'], { session : false });
-exports.isClientAuthenticated = passport.authenticate('client-basic', { session : false });
+exports.isAuthenticated = passport.authenticate(['local', 'accessToken'], { session : false });
 exports.isBearerAuthenticated = passport.authenticate('bearer', { session: false });

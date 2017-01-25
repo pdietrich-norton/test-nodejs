@@ -1,13 +1,12 @@
 // Load required packages
-var express = require('express');
-var mongoose = require('mongoose');
-var bodyParser = require('body-parser');
-var session = require('express-session');
-var passport = require('passport');
-var userController = require('./controllers/user');
-var authController = require('./controllers/auth');
-var oauth2Controller = require('./controllers/oauth2');
-var clientController = require('./controllers/client');
+var express = require('express'),
+    mongoose = require('mongoose'),
+    bodyParser = require('body-parser'),
+    passport = require('passport'),
+    userController = require('./controllers/user'),
+    oauth2Controller = require('./controllers/oauth2'),
+    clientController = require('./controllers/client'),
+    authController = require('./controllers/auth');
 
 mongoose.connect('mongodb://localhost:27017/nodeauth');
 
@@ -18,38 +17,41 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-// Use express session support because OAuth2orize requires it
-app.use(session({
-    secret: 'imgettingamoderatelysevereheadache',
-    saveUninitialized: true,
-    resave: true
-}));
-
 app.use(passport.initialize());
 
 var router = express.Router();
 
 // Route to add new clients (if client auth secret is passed)
-router.route('/api/client')
+router.route('/api/client/add')
     .post(clientController.canCreateClient, userController.userExists, clientController.addClient);
 
 // Route to add/update user
-router.route('/api/user')
+router.route('/api/user/add')
     .post(userController.getUser, userController.addUser)
     .put(userController.getUser, userController.updateUser);
 
-/*
-// AUTH
-// Create endpoint handlers for oauth2 authorize
-router.route('/api/oauth2/authorize')
-    .get(authController.isAuthenticated, oauth2Controller.authorization)
-    .post(authController.isAuthenticated, oauth2Controller.decision);
+router.route('/api/user')
+    .get(passport.authenticate('bearer', {session: false}),
+    function (req, res) {
+        // req.authInfo is set using the `info` argument supplied by
+        // `BearerStrategy`.  It is typically used to indicate scope of the token,
+        // and used in access control checks.  For illustrative purposes, this
+        // example simply returns the scope in the response.
+        res.json({
+            user_id: req.user.userId,
+            name: req.user.username,
+            scope: req.authInfo.scope
+        });
+    }
+);
 
-// Create endpoint handlers for oauth2 token
-router.route('/api/oauth2/token')
-    .post(authController.isClientAuthenticated, oauth2Controller.token);
-*/
+// Route to handle token and refresh-token request
+router.route('/api/token')
+    .post(oauth2Controller.token);
 
+// Route for revoke token
+router.route('/api/revoke')
+    .post(authController.isBearerAuthenticated, oauth2Controller.revoke);
 
 app.use(router);
 

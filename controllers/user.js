@@ -1,6 +1,6 @@
 // Load required packages
-var User = require('../models/user');
-var bcrypt = require('bcrypt-nodejs');
+var User = require('../models/user'),
+    bcrypt = require('bcrypt-nodejs');
 
 // Create endpoint /api/users for POST
 exports.addUser = function (req, res) {
@@ -18,8 +18,7 @@ exports.addUser = function (req, res) {
         username: req.body.username,
         password: hash,
         firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        updated_at: new Date().toUTCString()
+        lastname: req.body.lastname
     }).save(function (err) {
             if (err) {
                 return res.send(err);
@@ -46,8 +45,7 @@ exports.updateUser = function (req, res) {
         {
             password: hash,
             firstname: req.body.firstname,
-            lastname: req.body.lastname,
-            updated_at: new Date().toUTCString()
+            lastname: req.body.lastname
         },
         function (err) {
             if (err) {
