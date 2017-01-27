@@ -120,6 +120,14 @@ exports.token = [
 ];
 
 exports.revoke = function (req, res) {
-        res.send({"hey":"now"});
-
+    var hdr = req.get("Authorization");
+    var token  = hdr.replace('Bearer ', '');
+    res.send({"token":token});
+    AccessToken.remove();
+    AccessToken.remove(function (err, product) {
+        if (err) return handleError(err);
+        Product.findById(product._id, function (err, product) {
+            console.log(product) // null
+        })
+    })
 };
