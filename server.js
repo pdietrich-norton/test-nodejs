@@ -33,14 +33,9 @@ router.route('/api/user/add')
 router.route('/api/user')
     .get(passport.authenticate('bearer', {session: false}),
     function (req, res) {
-        // req.authInfo is set using the `info` argument supplied by
-        // `BearerStrategy`.  It is typically used to indicate scope of the token,
-        // and used in access control checks.  For illustrative purposes, this
-        // example simply returns the scope in the response.
         res.json({
-            user_id: req.user.userId,
-            name: req.user.username,
-            scope: req.authInfo.scope
+            user_id: req.user._id,
+            email: req.user.username
         });
     }
 );
