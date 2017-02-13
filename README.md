@@ -3,7 +3,7 @@
 ### (Similar to Laravel Auth Server functionality)
 
 ##Installation
-Create database "auth" on local MongoDb installation. This server will use localhost:27017 unless the connect string in server.js is modified.
+Create database "nodeauth" on local MongoDb installation. This server will use localhost:27017 unless the connect string in server.js is modified.
 
 ```
 npm install
@@ -96,7 +96,9 @@ URL: http://localhost:3000/api/revoke
 
 This service will return the userId and email of the user associated with the token
 
-Bearer Authorization header (value "Bearer [token-to-be-revoked]")
+Bearer Authorization header (value "Bearer [access-token]")
+
+Send these as headers (not as basic auth)
 
 * clientId - Client Id secret created by Client add route above
 * clientSecret - Client secret created by Client add route above

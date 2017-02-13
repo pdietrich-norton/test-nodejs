@@ -85,18 +85,3 @@ exports.userExists = function (req, res, next) {
         }
     });
 };
-
-// Get user by userId
-exports.userExists = function (req, res, next) {
-    User.find({_id: req.body.userId}, function (err, user) {
-        if (err) {
-            return res.send(err);
-        }
-
-        if (user.length > 0) {
-            next();
-        } else {
-            res.status(400).send({result: "User does not exist"});
-        }
-    });
-};
