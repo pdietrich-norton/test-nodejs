@@ -29,7 +29,7 @@ Use **Postman** to make requests.
 
 
 ####1. Create new User (POST)
-urlencoded past vars: 
+urlencoded post vars: 
 
 * username 
 * password 
@@ -41,7 +41,7 @@ URL: http://localhost:3000/api/user/add
 ```
 
 ####2. Create new Client (POST) 
-urlencoded past vars:
+urlencoded post vars:
 
 * name - the name of your app/s to be associated with this client
 * userId -  is the MongoId of the user created for this client
@@ -55,13 +55,13 @@ URL: http://localhost:3000/api/client/add
 urlencoded post vars:
 
 * grant_type (value "password")
-* username - user's usermae/email
-* password - iuser's password
+* username - user's username/email
+* password - user's password
 
 Basic Authorization header with Client Id (username field) and Client Secret (password field) 
 
-* clientId - Client Id secret created by Client add route above
-* clientSecret - Client secret created by Client add route above
+* clientId - Client Id created by Client-add route above
+* clientSecret - Client Secret created by Client-add route above
 
 ```
 URL: http://localhost:3000/api/token
@@ -75,8 +75,8 @@ urlencoded post vars:
 
 Basic Authorization header with Client Id (username field) and Client Secret (password field) 
 
-* clientId - Client Id secret created by Client add route above
-* clientSecret - Client secret created by Client add route above
+* clientId - Client Id created by Client-add route above
+* clientSecret - Client secret created by Client-add route above
 
 ```
 URL: http://localhost:3000/api/token
@@ -85,8 +85,8 @@ URL: http://localhost:3000/api/token
 ####5. Revoke an Authenticated Token (POST)
 Bearer Authorization header (value "Bearer [token-to-be-revoked]")
 
-* clientId - Client Id secret created by Client add route above
-* clientSecret - Client secret created by Client add route above
+* clientId - Client Id created by Client-add route above
+* clientSecret - Client secret created by Client-add route above
 
 ```
 URL: http://localhost:3000/api/revoke
@@ -100,8 +100,8 @@ Bearer Authorization header (value "Bearer [access-token]")
 
 Send these as headers (not as basic auth)
 
-* clientId - Client Id secret created by Client add route above
-* clientSecret - Client secret created by Client add route above
+* clientId - Client Id created by Client-add route above
+* clientSecret - Client secret created by Client-add route above
 
 ```
 URL: http://localhost:3000/api/user
